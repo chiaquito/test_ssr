@@ -13,7 +13,7 @@ export default async function CompanyById(props: CompanyByIdProps) {
   //   cache: "no-store",
   // });
   // 10.0.1.74
-  const res = await fetch(`http://10.0.1.74:1323/api/companies/${params.id}`, {
+  const res = await fetch(`http://10.0.1.105:1323/api/companies/${params.id}`, {
     cache: "no-store",
   });
 
