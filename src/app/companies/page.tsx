@@ -12,7 +12,10 @@ export interface Company {
 }
 
 export default async function Companies() {
-  const res = await fetch("http://localhost:1323/api/companies", {
+  // const res = await fetch("http://localhost:1323/api/companies", {
+  //   cache: "no-store",
+  // });
+  const res = await fetch("http://10.0.1.74:1323/api/companies", {
     cache: "no-store",
   });
   const companies: Company[] = await res.json();

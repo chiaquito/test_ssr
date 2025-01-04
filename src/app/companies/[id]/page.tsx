@@ -9,9 +9,14 @@ interface CompanyByIdProps {
 export default async function CompanyById(props: CompanyByIdProps) {
   const params = await props.params;
 
-  const res = await fetch(`http://localhost:1323/api/companies/${params.id}`, {
+  // const res = await fetch(`http://localhost:1323/api/companies/${params.id}`, {
+  //   cache: "no-store",
+  // });
+  // 10.0.1.74
+  const res = await fetch(`http://10.0.1.74:1323/api/companies/${params.id}`, {
     cache: "no-store",
   });
+
   const company: Company = await res.json();
   return (
     <>
