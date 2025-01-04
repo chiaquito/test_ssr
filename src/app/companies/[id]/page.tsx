@@ -2,13 +2,14 @@ import { Company } from "../page";
 import { ClientComponent, ImageComponent } from "./clientComponent";
 import Button from "@mui/material/Button";
 
-export default async function CompanyById({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const { id } = await params;
-  const res = await fetch(`http://localhost:1323/api/companies/${id}`, {
+interface CompanyByIdProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function CompanyById(props: CompanyByIdProps) {
+  const params = await props.params;
+
+  const res = await fetch(`http://localhost:1323/api/companies/${params.id}`, {
     cache: "no-store",
   });
   const company: Company = await res.json();
