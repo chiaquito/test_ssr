@@ -1,0 +1,32 @@
+簡易インフラ構成図
+https://app.diagrams.net/#G1qELNrmQNLgNYKOYwY_Pya6sLY8LAMSae#%7B%22pageId%22%3A%22yhwvdAvbaEJ14BtfZ6GY%22%7D
+
+
+vpc, 
+public subnet,
+private subnet,
+igw,
+route (table),
+acm,
+route53,
+ec2 for api server,
+ec2 for nextjs
+
+
+
+vpcid: 
+vpc-0ebc66b415c7b9a2d
+public subnet:
+subnet-090d96f184be25b1c
+private subnet:
+subnet-090d96f184be25b1c
+route table:
+rtb-04c758cba06ff1278
+igw:
+igw-0b242380c88715133
+ec2 for api server:
+i-0685e9702dfa7116b
+
+
+
+ssh -i ~/.ssh/aws_test/id_ed25519 ec2-user@35.77.90.161 

@@ -1,5 +1,11 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# terraform
+terraform.tfvars
+.terraform
+.terraform.lock.hcl
+terraform.tfstate*
+
 # dependencies
 /node_modules
 /.pnp
