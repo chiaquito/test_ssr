@@ -1,7 +1,8 @@
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/db_instance
 resource "aws_db_instance" "rds_mysql" {
-  allocated_storage = 20
-  # db_name              = "mydb"
+  identifier             = var.aws_db_instance_identifier
+  db_name                = var.aws_db_instance_identifier
+  allocated_storage      = 20
   engine                 = "mysql"
   engine_version         = "8.0.39"
   instance_class         = "db.t4g.micro"

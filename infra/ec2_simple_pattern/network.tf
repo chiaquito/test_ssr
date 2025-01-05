@@ -1,3 +1,6 @@
+########## vpc attached to igw ##########
+
+# there are api-server(ec2), nextjs-ssr-server(ec2) and rds in this vpc 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
@@ -10,11 +13,47 @@ resource "aws_vpc" "main" {
 }
 
 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "nextjs_igw"
+    App  = "nextjs"
+    Iac  = true
+  }
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table
+resource "aws_route_table" "rt" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "nextjs_rt"
+    App  = "nextjs"
+    Iac  = true
+  }
+}
+
+resource "aws_route" "igw_route" {
+  route_table_id         = aws_route_table.rt.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.igw.id
+
+}
+
+resource "aws_route_table_association" "example" {
+  subnet_id      = aws_subnet.public.id
+  route_table_id = aws_route_table.rt.id
+
+}
+
+# public subnet for api-server and nextjs-ssr-server
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet
 resource "aws_subnet" "public" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.1.0/24"
-  availability_zone = "ap-northeast-1a"
+  availability_zone = aws_db_instance.rds_mysql.availability_zone
 
   tags = {
     Name = "nextjs_public_subnet"
@@ -23,6 +62,7 @@ resource "aws_subnet" "public" {
   }
 }
 
+# private subnets for rds
 resource "aws_subnet" "private_a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.2.0/24"
@@ -49,48 +89,9 @@ resource "aws_subnet" "private_c" {
 
 
 
-# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.main.id
+########## security group ###########
 
-  tags = {
-    Name = "nextjs_igw"
-    App  = "nextjs"
-    Iac  = true
-  }
-}
-
-
-# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table
-resource "aws_route_table" "rt" {
-  vpc_id = aws_vpc.main.id
-
-  tags = {
-    Name = "nextjs_rt"
-    App  = "nextjs"
-    Iac  = true
-  }
-}
-
-
-resource "aws_route" "igw_route" {
-  route_table_id         = aws_route_table.rt.id
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.igw.id
-
-}
-
-resource "aws_route_table_association" "example" {
-  subnet_id      = aws_subnet.public.id
-  route_table_id = aws_route_table.rt.id
-
-}
-
-
-
-######### security group ##########
-
-# rds用セキュリティグループ
+# security group for rds
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
 resource "aws_security_group" "rds_sg" {
   name        = "ec2_rds_sg"
@@ -101,7 +102,7 @@ resource "aws_security_group" "rds_sg" {
     from_port       = 3306
     to_port         = 3306
     protocol        = "tcp"
-    security_groups = [aws_security_group.ec2_sg.id] # EC2セキュリティグループからのアクセスを許可
+    security_groups = [aws_security_group.ec2_apiserver_sg.id] # EC2セキュリティグループからのアクセスを許可
   }
 
   egress {
@@ -118,9 +119,9 @@ resource "aws_security_group" "rds_sg" {
   }
 }
 
-# ec2用セキュリティグループ
-resource "aws_security_group" "ec2_sg" {
-  vpc_id = aws_vpc.main.id
+# security group for api-server
+resource "aws_security_group" "ec2_apiserver_sg" {
+  vpc_id      = aws_vpc.main.id
   description = "for ec2: this sg allows api server to recieve on port 1323"
 
   ingress {
@@ -152,8 +153,50 @@ resource "aws_security_group" "ec2_sg" {
   }
 
   tags = {
-    Name = "nextjs_ec2_sg"
+    Name = "nextjs_ec2_apiserver_sg"
     App  = "nextjs"
     Iac  = true
   }
+}
+
+# security group for nextjs-ssr-server
+resource "aws_security_group" "ec2_ssrserver_sg" {
+  vpc_id      = aws_vpc.main.id
+  description = "for ec2: this sg allows api server to recieve on port 3000"
+
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1" # 全プロトコル許可
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "nextjs_ec2_ssrserver_sg"
+    App  = "nextjs"
+    Iac  = true
+  }
+}
+
+
+###### elastic ip for CORS #######
+
+# elastic ip attached to api-server(ec2) 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip
+resource "aws_eip" "eip" {
+  instance = aws_instance.api_server.id
 }

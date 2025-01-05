@@ -1,5 +1,4 @@
 #!/bin/bash
-# sudo不要
 
 
 # install git
@@ -12,13 +11,12 @@ dnf -y install https://dev.mysql.com/get/mysql84-community-release-el9-1.noarch.
 dnf -y install mysql mysql-community-client
 
 
-# install golang
-# 圧縮ファイルから展開する
+# install golang runtime, go1.23.4
 wget https://go.dev/dl/go1.23.4.linux-amd64.tar.gz
 tar -C /usr/local -xzf go1.23.4.linux-amd64.tar.gz
-## set up golang env
-echo PATH=$PATH:/usr/local/go/bin >> ~/.bash_profile;
-source ~/.bash_profile
+## add golang runtime path
+echo PATH=$PATH:/usr/local/go/bin >> /home/ec2-user/.bash_profile;
+source /home/ec2-user/.bash_profile
 
 
 
