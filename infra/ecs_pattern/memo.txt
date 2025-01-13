@@ -1,0 +1,26 @@
+--- resource ---
+1.network
+vpc
+igw
+route_table
+route
+sg?
+private_subnet
+
+vpc_endpoint_interface_for_ecrdkr
+vpc_endpoint_interface_for_ecrapi
+vpc_endpoint_interface_for_cloudwach
+vpc_endpoint_gateway_for_s3
+
+
+2. container service
+ecs_cluster
+ecs_cluster_dataplane_fargate
+task_definition
+
+3. log
+cloudwatch?
+
+----- data ------
+ecr
+

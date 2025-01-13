@@ -1,0 +1,11 @@
+### to use tfvars copy this file and remove .example from copied file name
+### tfvars_key_definition_rule => format:{resource_name}_{argument}
+
+## database authentication
+aws_db_instance_username = ""
+aws_db_instance_password = ""
+
+
+## aws_db_instance db_identifer
+aws_db_instance_identifier = ""
+
