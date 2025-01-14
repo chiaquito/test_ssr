@@ -21,6 +21,24 @@ resource "aws_ecs_task_definition" "tf_task_definiton" {
   }
 }
 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition
+resource "aws_ecs_task_definition" "tf_task_definiton_nextjs" {
+  family = "ecs_task_difinition_by_terraform_nextjs_sever"
+  # https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html
+  container_definitions    = file("./ecs_containerdefinitions/nextjs_server.json")
+  cpu                      = 256
+  memory                   = 512
+  network_mode             = "awsvpc"
+  task_role_arn            = aws_iam_role.ecs_task_role.arn
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+  requires_compatibilities = ["FARGATE"]
+  tags = {
+    Name = "nextjs_ecs_task_definition_nextjs_server"
+    App  = "nextjs"
+    Iac  = true
+  }
+}
+
 
 ############################################################################
 #                      IAM Role / Task Role                                #

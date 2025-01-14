@@ -1,5 +1,5 @@
 ############################################################################
-#                      Security group                                      #
+#                          Security Group                                  #
 ############################################################################
 
 # 1.Security group for vpc endpoint
@@ -65,7 +65,47 @@ resource "aws_security_group" "alb_sg" {
 }
 
 
-# 3.Security group to open 1323 number for api server
+# 3.Configuring Security Group to open port 3000 for Next.js SSR Server
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
+resource "aws_security_group" "nextjsserver_sg" {
+  name        = "nextjsserver_sg"
+  description = "Security Group to open port 3000 for Next.js SSR Server"
+  vpc_id      = aws_vpc.shozai_ecs_main.id
+
+
+  # Allows the Application Load Balancer to send requests to Next.js SSR Server
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    security_groups = [aws_security_group.alb_sg.id]
+  }
+
+  # TODO: 検証用にブラウザからアクセスできるように追加したが後で消す
+  # Allows the Application Load Balancer to send requests to Next.js SSR Server
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1" # 全プロトコル許可
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "nextjs_nextjsserver_sg_terraform"
+    App  = "nextjs"
+    Iac  = true
+  }
+}
+
+
+# 4.Security Group to open port 1323 for Api Server
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
 resource "aws_security_group" "apiserver_sg" {
   name        = "apiserver_sg"
@@ -104,7 +144,7 @@ resource "aws_security_group" "apiserver_sg" {
 }
 
 
-# 4.Configuring the security group to open port 3306 so that ECS tasks and EC2 bastion host can send requests to RDS
+# 5.Configuring the security group to open port 3306 so that ECS tasks and EC2 bastion host can send requests to RDS
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
 resource "aws_security_group" "rds_sg" {
   name        = "rds_sg"
@@ -135,7 +175,7 @@ resource "aws_security_group" "rds_sg" {
 
 
 
-# 5.Configuring the security group to open port 22 so that EC2 Bastion Host can recieve requests from clients
+# 6.Configuring the security group to open port 22 so that EC2 Bastion Host can recieve requests from clients
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
 resource "aws_security_group" "ec2_bastion_host_sg" {
   name        = "ec2_bastion_host_sg"
@@ -162,4 +202,3 @@ resource "aws_security_group" "ec2_bastion_host_sg" {
     Iac  = true
   }
 }
-

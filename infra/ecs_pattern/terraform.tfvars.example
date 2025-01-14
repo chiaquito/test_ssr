@@ -16,3 +16,10 @@ aws_key_pair_key_name = ""
 
 ## aws_instance.ami / ec2 ami, amazon linux 2023
 aws_instance_ami = ""
+
+
+## ECR for Api Server
+aws_ecr_repository_api_server_name = ""
+
+## ECR for Next.js SSR Server
+aws_ecr_repository_ssr_server_name = ""

@@ -29,3 +29,16 @@ variable "aws_instance_ami" {
   description = "ec2 for bastion host"
   type        = string
 }
+
+
+# ECR for Api Server
+variable "aws_ecr_repository_api_server_name" {
+  description = "ECR for Api Server"
+  type        = string
+}
+
+# ECR for Next.js SSR Server
+variable "aws_ecr_repository_ssr_server_name" {
+  description = "ECR for Next.js SSR Server"
+  type        = string
+}
