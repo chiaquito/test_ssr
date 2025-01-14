@@ -1,9 +1,13 @@
-# ECS task definition
+##################################################################
+#                     ECS Task Definition                        #
+##################################################################
+
+
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition
 resource "aws_ecs_task_definition" "tf_task_definiton" {
   family = "ecs_task_difinition_by_terraform"
   # https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html
-  container_definitions    = file("./container_definitions/api_server.json")
+  container_definitions    = file("./ecs_containerdefinitions/api_server.json")
   cpu                      = 256
   memory                   = 512
   network_mode             = "awsvpc"
@@ -18,9 +22,13 @@ resource "aws_ecs_task_definition" "tf_task_definiton" {
 }
 
 
-# Task role
-# A task IAM role allows containers in the task to make API requests to AWS services. 
+############################################################################
+#                      IAM Role / Task Role                                #
+############################################################################
+
+
 resource "aws_iam_role" "ecs_task_role" {
+  description = "A task IAM role allows containers in the task to make API requests to AWS services."
   assume_role_policy = jsonencode(
     {
       Statement = [
@@ -39,7 +47,7 @@ resource "aws_iam_role" "ecs_task_role" {
   managed_policy_arns = [
     "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
   ]
-  # description = "Allows ECS tasks to call AWS services on your behalf."
+
   name = "ecsAmazonEC2ContainerRegistryReadOnlyTerraform"
   path = "/"
 
@@ -52,9 +60,14 @@ resource "aws_iam_role" "ecs_task_role" {
 
 
 
-# IAM Role / task execute permision
-# A task execution IAM role is used by the container agent to make AWS API requests on your behalf.
+
+############################################################################
+#                      IAM Role / Task Execution Role                      #
+############################################################################
+
+
 resource "aws_iam_role" "ecs_task_execution_role" {
+  description = "A task execution IAM role is used by the container agent to make AWS API requests on your behalf."
   assume_role_policy = jsonencode(
     {
       Statement = [
@@ -73,7 +86,7 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   managed_policy_arns = [
     "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
   ]
-  # description = "Allows ECS tasks to call AWS services on your behalf."
+
   name = "ecsTaskExecutionRoleTerraform"
   path = "/"
 

@@ -1,4 +1,7 @@
---- resource ---
+システム構成図
+https://app.diagrams.net/#G1qELNrmQNLgNYKOYwY_Pya6sLY8LAMSae#%7B%22pageId%22%3A%22qoRJ5PriGyTqGXQR0C2T%22%7D
+
+---- resource ----
 1.network
 vpc
 igw
@@ -12,15 +15,20 @@ vpc_endpoint_interface_for_ecrapi
 vpc_endpoint_interface_for_cloudwach
 vpc_endpoint_gateway_for_s3
 
-
-2. container service
+2.container service
 ecs_cluster
 ecs_cluster_dataplane_fargate
 task_definition
 
-3. log
-cloudwatch?
+3.log
+cloudwatch? // to register task logs
 
------ data ------
+4.others
+ec2 // to access rds
+
+
+
+---- data ----
 ecr
+key_pair // to access ec2
 

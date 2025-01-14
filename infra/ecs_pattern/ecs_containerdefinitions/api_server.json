@@ -5,7 +5,12 @@
     "cpu": 256,
     "essential": true,
     "memory": 128,
-    "portMappings": [],
+    "portMappings": [
+      {
+        "containerPort": 1323,
+        "hostPort": 1323
+      }
+    ],
     "logConfiguration": {
       "logDriver": "awslogs",
       "options": {

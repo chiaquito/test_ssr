@@ -5,7 +5,14 @@
 aws_db_instance_username = ""
 aws_db_instance_password = ""
 
-
-## aws_db_instance db_identifer
+## aws_db_instance.db_identifer
 aws_db_instance_identifier = ""
 
+## aws_db_instance.engine_version
+aws_db_instance_engine_version = ""
+
+## aws_key_pair.key_name / ec2 authenticate key_name  
+aws_key_pair_key_name = ""
+
+## aws_instance.ami / ec2 ami, amazon linux 2023
+aws_instance_ami = ""
