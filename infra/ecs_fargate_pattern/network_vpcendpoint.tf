@@ -36,8 +36,6 @@ resource "aws_vpc_endpoint" "shozai_ecs_ecrapi_vpcendpoint" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
-
-
   security_group_ids = [
     aws_security_group.vpc_endpoint_sg.id,
   ]
@@ -71,6 +69,52 @@ resource "aws_vpc_endpoint" "shozai_ecs_logs_vpcendpoint" {
     Iac  = true
   }
 }
+
+resource "aws_vpc_endpoint" "ssm" {
+  vpc_id            = aws_vpc.shozai_ecs_main.id
+  service_name      = "com.amazonaws.ap-northeast-1.ssm"
+  vpc_endpoint_type = "Interface"
+
+  subnet_ids = [
+    aws_subnet.shozai_private_subnet_a.id,
+    aws_subnet.shozai_private_subnet_c.id,
+  ]
+  security_group_ids  = [aws_security_group.vpc_endpoint_sg.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "nextjs_ecs_ssm_vpcendpoint_terraform"
+    App  = "nextjs"
+    Iac  = true
+  }
+}
+
+
+
+
+
+resource "aws_vpc_endpoint" "ssm2" {
+  vpc_id            = aws_vpc.shozai_ecs_main.id
+  service_name      = "com.amazonaws.ap-northeast-1.ssm"
+  vpc_endpoint_type = "Interface"
+
+  subnet_ids = [
+    aws_subnet.shozai_public.id,
+    aws_subnet.shozai_public_sub.id
+    # 追加
+
+
+  ]
+  security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
+  // private_dns_enabled = true
+
+  tags = {
+    Name = "nextjs_ecs_ssm_vpcendpoint2_terraform"
+    App  = "nextjs"
+    Iac  = true
+  }
+}
+
 
 
 

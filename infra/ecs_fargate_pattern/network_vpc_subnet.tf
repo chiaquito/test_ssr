@@ -36,6 +36,28 @@ resource "aws_subnet" "shozai_public" {
   }
 }
 
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+locals {
+  excluded_az = aws_db_instance.ecs_rds_mysql.availability_zone
+  target_azs  = [for az in data.aws_availability_zones.available.names : az if az != local.excluded_az]
+}
+
+resource "aws_subnet" "shozai_public_sub" {
+  vpc_id            = aws_vpc.shozai_ecs_main.id
+  cidr_block        = "10.0.5.0/24"
+  availability_zone = local.target_azs[0]
+
+  tags = {
+    Name = "nextjs_public_subnet_left_availability_zone"
+    App  = "nextjs"
+    Iac  = true
+  }
+}
+
+
 # private subnet
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet
 resource "aws_subnet" "shozai_private_subnet_a" {

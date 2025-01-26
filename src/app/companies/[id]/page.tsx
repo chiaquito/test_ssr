@@ -8,8 +8,10 @@ interface CompanyByIdProps {
 
 export default async function CompanyById(props: CompanyByIdProps) {
   const params = await props.params;
+  const host: string = process.env.API_SERVER_HOST ?? "localhost";
+  const port: string = process.env.API_SERVER_PORT ?? "1323";
 
-  const res = await fetch(`http://localhost:1323/api/companies/${params.id}`, {
+  const res = await fetch(`http://${host}:${port}/api/companies/${params.id}`, {
     cache: "no-store",
   });
   const company: Company = await res.json();

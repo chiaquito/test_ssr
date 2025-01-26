@@ -1,7 +1,7 @@
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_acl
 resource "aws_network_acl" "shozai_ecs_main" {
-  vpc_id = aws_vpc.shozai_ecs_main.id
+  vpc_id     = aws_vpc.shozai_ecs_main.id
   subnet_ids = [aws_subnet.shozai_private_subnet_a.id, aws_subnet.shozai_private_subnet_c.id, aws_subnet.shozai_public.id]
 
   ingress {

@@ -1,0 +1,11 @@
+version: "3"
+services:
+  nextjs-server:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+      target: prod
+      args:
+        - API_SERVER_HOST=${API_SERVER_HOST}
+        - API_SERVER_PORT=${API_SERVER_PORT}
+    platform: linux/amd64
