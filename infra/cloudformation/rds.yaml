@@ -1,0 +1,273 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  # target snapshot arn to replicate
+  SnapshotARN:
+    Type: String
+    Default: arn:aws:rds:ap-northeast-1:938768818671:snapshot:snapshot20250320
+  # network ip
+  AccessibleIP:
+    Type: String
+    Default: 133.204.156.0/32
+
+Resources:
+  ####################################
+  #        Network resources         #
+  ####################################
+  # VPC
+  # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpc.html
+  tmpVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: section
+          Value: section1
+        - Key: app
+          Value: erawan
+        - Key: iac
+          Value: true
+
+  # InternetGateway
+  # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-internetgateway.html
+  tmpInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: section
+          Value: sec
+        - Key: app
+          Value: erawan
+        - Key: iac
+          Value: true
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcgatewayattachment.html
+  attachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: tmpVPC
+      InternetGatewayId:
+        Ref: tmpInternetGateway
+
+  # Subnet
+  # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html
+  tmpSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AssignIpv6AddressOnCreation: false
+      AvailabilityZone: ap-northeast-1a
+      CidrBlock: 10.0.0.0/24
+      EnableDns64: false
+      VpcId: !Ref tmpVPC
+      Tags:
+        - Key: section
+          Value: section1
+        - Key: app
+          Value: erawan
+        - Key: iac
+          Value: true
+  tmpSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AssignIpv6AddressOnCreation: false
+      AvailabilityZone: ap-northeast-1c
+      CidrBlock: 10.0.1.0/24
+      EnableDns64: false
+      VpcId: !Ref tmpVPC
+      Tags:
+        - Key: section
+          Value: section1
+        - Key: app
+          Value: erawan
+        - Key: iac
+          Value: true
+
+  # RouteTable
+  # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-routetable.html
+  tmpRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref tmpVPC
+      Tags:
+        - Key: section
+          Value: section1
+        - Key: app
+          Value: erawan
+        - Key: iac
+          Value: true
+  # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-route.html
+  tmpRoute:
+    Type: AWS::EC2::Route
+    DependsOn: attachGateway
+    Properties:
+      # CarrierGatewayId: String
+      # CoreNetworkArn: String
+      DestinationCidrBlock: 0.0.0.0/0 # subnet1,2両方publicにする
+      # DestinationIpv6CidrBlock: String
+      # DestinationPrefixListId: String
+      # EgressOnlyInternetGatewayId: String
+      GatewayId: !Ref tmpInternetGateway
+      # InstanceId: String
+      # LocalGatewayId: String
+      # NatGatewayId: String
+      # NetworkInterfaceId: String
+      RouteTableId: !Ref tmpRouteTable
+      # TransitGatewayId: String
+      # VpcEndpointId: String
+      # VpcPeeringConnectionId: String
+  tmpSubnetRouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref tmpSubnet1
+      RouteTableId: !Ref tmpRouteTable
+  tmpSubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref tmpSubnet2
+      RouteTableId: !Ref tmpRouteTable
+
+  # SecurityGroup
+  # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-securitygroup.html
+  tmpRDSInstanceSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "for RDS ingress: Allow developers to access the database, MariaDB from specific IPs"
+      GroupName: ingressRdsSg
+      VpcId: !Ref tmpVPC
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          # FromPort: 80
+          # ToPort: 80
+          CidrIp: 0.0.0.0/0
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: !Ref AccessibleIP
+          # CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: section
+          Value: section1
+        - Key: app
+          Value: erawan
+        - Key: iac
+          Value: true
+
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-rds-dbsubnetgroup.html
+  tmpSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: for DatabaseInstance created with snapshot
+      DBSubnetGroupName: tmpSubnetGroup
+      SubnetIds:
+        - !Ref tmpSubnet1
+        - !Ref tmpSubnet2
+      Tags:
+        - Key: section
+          Value: section1
+        - Key: app
+          Value: erawan
+        - Key: iac
+          Value: true
+
+  ##########################################
+  #       RDS, Database resources          #
+  ##########################################
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-rds-dbinstance.html
+  tmpRds:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: 20
+      # AllowMajorVersionUpgrade: Boolean
+      # ApplyImmediately: Boolean
+      # AssociatedRoles:
+      #   - DBInstanceRole
+      # AutomaticBackupReplicationKmsKeyId: String
+      # AutomaticBackupReplicationRegion: String
+      AutoMinorVersionUpgrade: false
+      AvailabilityZone: ap-northeast-1a
+      # BackupRetentionPeriod: Integer
+      # CACertificateIdentifier: String
+      # CertificateDetails: CertificateDetails
+      # CertificateRotationRestart: Boolean
+      # CharacterSetName: utf8mb4 # ここは本物を確認しておく必要あり
+      # CopyTagsToSnapshot: Boolean
+      # CustomIAMInstanceProfile: String
+      # DBClusterIdentifier: String
+      # DBClusterSnapshotIdentifier: String
+      DBInstanceClass: db.t3.micro
+      DBInstanceIdentifier: rdsByCFN
+      # if use manual snapshot, we shoud not use Property "DBName"
+      # DBName: db
+      # DBParameterGroupName: !Ref tmpMariaDBParameterGroup
+      # DBSecurityGroups:
+      #   - String
+      DBSnapshotIdentifier: !Ref SnapshotARN
+      DBSubnetGroupName: !Ref tmpSubnetGroup
+      # DBSystemId: String
+      # DedicatedLogVolume: Boolean
+      # DeleteAutomatedBackups: Boolean
+      # DeletionProtection: Boolean
+      # Domain: String
+      # DomainAuthSecretArn: String
+      # DomainDnsIps:
+      #   - String
+      # DomainFqdn: String
+      # DomainIAMRoleName: String
+      # DomainOu: String
+      # EnableCloudwatchLogsExports:
+      #   - String
+      # EnableIAMDatabaseAuthentication: Boolean
+      # EnablePerformanceInsights: Boolean
+      # Endpoint: Endpoint
+      Engine: MariaDB
+      # EngineLifecycleSupport: String
+      # https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/MariaDB.Concepts.VersionMgmt.html
+      EngineVersion: "10.11"
+      # Iops: Integer
+      # KmsKeyId: String
+      # LicenseModel: String
+      # ManageMasterUserPassword: Boolean
+      MasterUsername: root
+      MasterUserPassword: root1234
+      # MasterUserSecret: MasterUserSecret
+      # MaxAllocatedStorage: Integer
+      # MonitoringInterval: Integer
+      # MonitoringRoleArn: String
+      # MultiAZ: false
+      # NcharCharacterSetName: String
+      # NetworkType: String
+      # OptionGroupName: String
+      # PerformanceInsightsKMSKeyId: String
+      # PerformanceInsightsRetentionPeriod: Integer
+      Port: 3306 # TODO: 変数で管理するように
+      # PreferredBackupWindow: String
+      # PreferredMaintenanceWindow: String
+      # ProcessorFeatures:
+      #   - ProcessorFeature
+      # PromotionTier: Integer
+      PubliclyAccessible: true
+      # ReplicaMode: String
+      # RestoreTime: String
+      # SourceDBClusterIdentifier: String
+      # SourceDBInstanceAutomatedBackupsArn: String
+      # SourceDBInstanceIdentifier: String
+      # SourceDbiResourceId: String
+      # SourceRegion: String
+      # StorageEncrypted: Boolean
+      # StorageThroughput: Integer
+      # StorageType: String
+      VPCSecurityGroups:
+        - !Ref tmpRDSInstanceSG
+      # Timezone: Asia/Tokyo
+      # UseDefaultProcessorFeatures: Boolean
+      # UseLatestRestorableTime: Boolean
+      Tags:
+        - Key: section
+          Value: section1
+        - Key: iac
+          Value: true
+        - Key: app
+          Value: erawan
